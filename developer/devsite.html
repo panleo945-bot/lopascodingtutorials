@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website Launcher</title>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Website Launcher</h2>
+        <p>Choose environment:</p>
+        
+        <div class="btn-container">
+            <button class="btn-blank" onclick="launchAboutBlank()">Launch in about:blank</button>
+            <button class="btn-blob" onclick="launchBlob()">Launch in Blob URL</button>
+            <button class="btn-normal" onclick="launchDirect()">Launch through this page</button>
+        </div>
+    </div>
+    <script>
+        const predefinedHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site</title>
+    <style>body {
+	min-height: 100vh;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+  background-color: black;
+	background: linear-gradient(180deg, #0a2a6b 0%, #02123b 100%) fixed;
+}
+
+button {
+    background-color: #0610222f;
+    color: cyan;
+    height: 45px;
+    width: 45px;
+    font-size: 9px;
+    border-style: none;
+    border-radius: 40px;
+    corner-shape: squircle;
+    cursor: pointer;
+    
+}
+
+.control-panel {
+    position: absolute;
+    top: 4%;
+	width: 265px;
+	height: 50px;
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
+	background-color: rgb(10, 119, 228, 0.2);
+    corner-shape: squircle; 
+    border-radius: 15px;
+}
+
+.iframe-container {
+	position: relative;
+	width: 500px;
+	height: 350px;
+    overflow: visible;
+    isolation: isolate;
+}
+
+.iframe-container iframe {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+}
+
+.iframe-drag-handle {
+	position: absolute;
+    top: -32px;
+	left: 0;
+    z-index: 2;
+	width: calc(100%);
+	height: 32px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	padding: 0 12px;
+	border: 0;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+	background: rgba(6, 16, 34, 0.88);
+	color: rgba(245, 248, 255, 0.92);
+	font-size: 12px;
+	font-weight: 600;
+	text-align: left;
+	cursor: grab;
+	touch-action: none;
+    border-style: none !important;
+    border-radius: 0% !important; 
+}
+
+.iframe-drag-handle::before {
+	width: 14px;
+	height: 8px;
+	margin-right: 8px;
+	background: radial-gradient(circle, #aab7c9 1.3px, transparent 1.5px) 0 0 / 6px 6px;
+	content: "";
+}
+
+.iframe-drag-handle:active {
+	cursor: grabbing;
+}
+
+.iframe-maximize {
+	position: absolute;
+    top: -29px;
+	right: 30px;
+    z-index: 3;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: rgb(255, 4, 4);
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+}
+.iframe-close {
+	position: absolute;
+    top: -27px;
+	right: 4px;
+    z-index: 4;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: transparent;
+	color: rgb(255, 4, 4);
+	font-size: 18px;
+	line-height: 1;
+	cursor: pointer;
+}
+
+.iframe-close:hover {
+	background: #f0645d;
+}
+
+.iframe-close:focus-visible,
+.iframe-drag-handle:focus-visible {
+	outline: 2px solid white;
+	outline-offset: 2px;
+}
+
+.iframe-resize-handle {
+	position: absolute;
+	right: 0;
+	bottom: 0;
+    z-index: 3;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	border: 0;
+	background: linear-gradient(135deg, transparent 48%, white 50% 56%, transparent 58% 67%, white 69% 75%, transparent 77%);
+	cursor: nwse-resize;
+	touch-action: none;
+}</style>
+</head>
+<body>
+    <div class="control-panel">
+        <button id="forward">Use Main</button>
+        <button id="static">Use Backup</button>
+        <button id="custom">Custom site</button>
+        <button id="code">Custom HTML site</button>
+        <button id="about" style="font-size: 30px;">𝒾</button>
+    </div>
+<script>
+
+let forwardingwebsite = "https://uploads-usc1.padletcdn.com/4865083536/4e7c634432b37bba781530a0802763b7/arctic.html"
+let staticsite = "devsite2.html"
+let infoHtml = "<head></head><body style='background-color: white;'><h1>Info</h1><h2>WOWME version: alpha v0.5</h2><h3>Extensions coming soon</h3><p>Find on github as WOWME</p></body>"
+let nextIframeZIndex = 1
+//Make sure website allows embeds
+function forwardPopUp(code) {
+    const iframeContainer = document.createElement("div")
+    iframeContainer.className = "iframe-container"
+    iframeContainer.style.position = "fixed"
+    iframeContainer.style.left = Math.max(16, (window.innerWidth - 500) / 2) + "px"
+    iframeContainer.style.top = Math.max(32, (window.innerHeight - 350) / 2) + "px"
+    iframeContainer.style.zIndex = String(++nextIframeZIndex)
+
+    const newiframe = document.createElement("iframe")
+
+    newiframe.width = "500px"
+    newiframe.height = "350px"
+    newiframe.title = "Forwarded website"
+
+    const dragHandle = document.createElement("button")
+    dragHandle.type = "button"
+    dragHandle.className = "iframe-drag-handle"
+    dragHandle.textContent = "Window"
+    dragHandle.setAttribute("aria-label", "Drag window")
+    dragHandle.title = "Drag to move"
+
+        if (code == 1) {
+    newiframe.src = forwardingwebsite
+    dragHandle.textContent = "Main Site"
+} else if (code == 0) {
+   newiframe.src = staticsite
+   dragHandle.textContent = "Backup Site"
+} else if (code == 2) {
+  newiframe.srcdoc = infoHtml
+  dragHandle.textContent = "Information"
+  } else if (code == 3) {
+    newiframe.srcdoc = prompt("enter custom HTML (copy paste code):")
+  } else if (code == 4) {
+newiframe.src = prompt("(include htpp:// or https://) include custom site (eg. https://example.com)")
+  }
+    let dragState
+    dragHandle.addEventListener("pointerdown", (event) => {
+        event.preventDefault()
+        const bounds = iframeContainer.getBoundingClientRect()
+        iframeContainer.style.position = "fixed"
+        iframeContainer.style.left = bounds.left + "px"
+        iframeContainer.style.top = bounds.top + "px"
+        iframeContainer.style.zIndex = String(++nextIframeZIndex)
+        dragState = {
+            pointerX: event.clientX,
+            pointerY: event.clientY,
+            left: bounds.left,
+            top: bounds.top,
+        }
+        dragHandle.setPointerCapture(event.pointerId)
+    })
+    dragHandle.addEventListener("pointermove", (event) => {
+        if (!dragState) return
+        iframeContainer.style.left = (dragState.left + event.clientX - dragState.pointerX) + "px"
+        iframeContainer.style.top = (dragState.top + event.clientY - dragState.pointerY) + "px"
+    })
+    dragHandle.addEventListener("pointerup", () => {
+        dragState = null
+    })
+    dragHandle.addEventListener("pointercancel", () => {
+        dragState = null
+    })
+
+    const resizeHandle = document.createElement("button")
+    resizeHandle.type = "button"
+    resizeHandle.className = "iframe-resize-handle"
+    resizeHandle.setAttribute("aria-label", "Resize window")
+    resizeHandle.title = "Drag to resize"
+
+    let resizeState
+    resizeHandle.addEventListener("pointerdown", (event) => {
+        event.preventDefault()
+        const bounds = iframeContainer.getBoundingClientRect()
+        iframeContainer.style.zIndex = String(++nextIframeZIndex)
+        resizeState = {
+            pointerX: event.clientX,
+            pointerY: event.clientY,
+            width: bounds.width,
+            height: bounds.height,
+        }
+        resizeHandle.setPointerCapture(event.pointerId)
+    })
+    resizeHandle.addEventListener("pointermove", (event) => {
+        if (!resizeState) return
+        iframeContainer.style.width = Math.max(240, resizeState.width + event.clientX - resizeState.pointerX) + "px"
+        iframeContainer.style.height = Math.max(180, resizeState.height + event.clientY - resizeState.pointerY) + "px"
+    })
+    resizeHandle.addEventListener("pointerup", () => {
+        resizeState = null
+    })
+    resizeHandle.addEventListener("pointercancel", () => {
+        resizeState = null
+    })
+
+const largescreen = document.createElement("button")
+largescreen.type = "button"
+largescreen.className = "iframe-maximize"
+largescreen.textContent = "□"
+largescreen.setAttribute("aria-label", "Maximize window")
+
+let maximizedState = null
+largescreen.addEventListener("click", () => {
+    if (!maximizedState) {
+        maximizedState = {
+            width: iframeContainer.style.width || getComputedStyle(iframeContainer).width,
+            height: iframeContainer.style.height || getComputedStyle(iframeContainer).height,
+            left: iframeContainer.style.left || getComputedStyle(iframeContainer).left,
+            top: iframeContainer.style.top || getComputedStyle(iframeContainer).top,
+        }
+
+        const maxWidth = Math.min(window.innerWidth * 0.9, 1200)
+        const maxHeight = Math.min(window.innerHeight * 0.9, 800)
+
+        iframeContainer.style.width = maxWidth + "px"
+        iframeContainer.style.height = maxHeight + "px"
+        iframeContainer.style.left = ((window.innerWidth - maxWidth) / 2) + "px"
+        iframeContainer.style.top = ((window.innerHeight - maxHeight) / 2) + "px"
+    } else {
+        iframeContainer.style.width = maximizedState.width
+        iframeContainer.style.height = maximizedState.height
+        iframeContainer.style.left = maximizedState.left
+        iframeContainer.style.top = maximizedState.top
+        maximizedState = null
+    }
+})
+
+const closeButton = document.createElement("button")
+closeButton.type = "button"
+closeButton.className = "iframe-close"
+closeButton.textContent = "×"
+closeButton.setAttribute("aria-label", "Close forwarded website")
+closeButton.addEventListener("click", () => iframeContainer.remove())
+
+iframeContainer.append(newiframe, dragHandle, largescreen, closeButton, resizeHandle)
+document.body.appendChild(iframeContainer)
+}
+function clickhandlenonstatic() {
+    forwardPopUp(1)
+}
+function clickhandlestatic() {
+    forwardPopUp(0)
+}
+function showInfo() {
+   forwardPopUp(2)
+}
+function customHTML() {
+    forwardPopUp(3)
+}
+function customSite() {
+    forwardPopUp(4)
+}
+document.getElementById("forward").addEventListener("click", clickhandlenonstatic);
+document.getElementById("about").addEventListener("click", showInfo)
+document.getElementById("static").addEventListener("click", clickhandlestatic);
+document.getElementById("code").addEventListener("click", customHTML);
+document.getElementById("custom").addEventListener("click", customSite);
+<\/script>
+</body>
+</html>`
+
+        function launchDirect() {
+            document.open();
+            document.write(predefinedHTML);
+            document.close();
+        }
+
+        function launchAboutBlank() {
+            const win = window.open('about:blank', '_blank');
+            if (win) {
+                win.document.open();
+                win.document.write(predefinedHTML);
+                win.document.close();
+            } else {
+                alert("Popup blocked! Please allow popups for this dashboard.");
+            }
+        }
+
+        function launchBlob() {
+            const blob = new Blob([predefinedHTML], { type: 'text/html' });
+            const blobUrl = URL.createObjectURL(blob);
+            const win = window.open(blobUrl, '_blank');
+            if (!win) {
+                alert("Popup blocked! Please allow popups for this dashboard.");
+            }
+        }
+    </script>
+
+</body>
+</html>
