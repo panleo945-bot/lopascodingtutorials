@@ -1,0 +1,43 @@
+body {
+color: rgb(69, 121, 17);
+background-color: rgb(238, 238, 229);
+text-align: center;
+position: relative;
+  height: 100%;
+}
+
+a {
+    color:rgb(92, 153, 0);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+footer a {
+color:rgb(16, 149, 96);
+}
+footer {
+  padding: 1em;
+  background-color: #f5f5f5;
+  position: absolute, bottom;
+}
+
+footer a:hover, footer a:focus {
+  color: rgb(92, 153, 0);
+  background-color: #ffe0e3;
+  text-decoration: underline;
+}
+#tutorials {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.tutorial {
+    background-color: rgb(184, 228, 210);
+    width: 175px;
+    height: fit-content;
+    align-content: center;
+    border: 1px;
+    border-style: double;
+}
+
