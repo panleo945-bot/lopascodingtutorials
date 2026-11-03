@@ -130,6 +130,9 @@ button {
 .iframe-close:hover {
 	background: #f0645d;
 }
+.iframe-maximize:hover {
+	background: #f0645d;
+}
 
 .iframe-close:focus-visible,
 .iframe-drag-handle:focus-visible {
@@ -296,7 +299,7 @@ const closeButton = document.createElement("button")
 closeButton.type = "button"
 closeButton.className = "iframe-close"
 closeButton.textContent = "×"
-closeButton.setAttribute("aria-label", "Close forwarded website")
+closeButton.setAttribute("aria-label", "Close tab")
 closeButton.addEventListener("click", () => iframeContainer.remove())
 
 iframeContainer.append(newiframe, dragHandle, largescreen, closeButton, resizeHandle)
