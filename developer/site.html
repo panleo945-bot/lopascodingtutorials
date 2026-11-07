@@ -279,8 +279,8 @@ largescreen.addEventListener("click", () => {
             top: iframeContainer.style.top || getComputedStyle(iframeContainer).top,
         }
 
-        const maxWidth = Math.min(window.innerWidth * 0.9, 1200)
-        const maxHeight = Math.min(window.innerHeight * 0.9, 800)
+        const maxWidth = Math.min(window.innerWidth * 0.95, 1200)
+        const maxHeight = Math.min(window.innerHeight * 0.95, 800)
 
         iframeContainer.style.width = maxWidth + "px"
         iframeContainer.style.height = maxHeight + "px"
