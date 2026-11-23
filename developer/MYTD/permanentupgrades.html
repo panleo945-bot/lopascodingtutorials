@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Permanent Upgrades - Tower TD</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="upgrades.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Permanent upgrades</h1>
+    <nav class="site-nav"><a href="index.html">Back to game</a></nav>
+    <p>Buy upgrades with coins earned by clearing waves. Purchased upgrades remain unlocked after you restart.</p>
+    <p class="upgrade-balance">Available coins: <strong id="availableCoins">0</strong></p>
+    <p id="upgradeMessage" role="status">Loading saved game...</p>
+
+    <section class="upgrade-list" aria-label="Available upgrades">
+      <article class="upgrade-card">
+        <h2>Increased Coin Income</h2>
+        <p>Earn 25 + wave × 5 coins each time you clear a wave, instead of 10 + wave.</p>
+        <p>Status: <strong id="coinIncomeStatus">Not owned</strong></p>
+        <button type="button" data-upgrade="coinIncome">Purchase for 100 coins</button>
+      </article>
+
+      <article class="upgrade-card">
+        <h2>5% Tower Discount</h2>
+        <p>Reduce the placement cost of every tower by 5%.</p>
+        <p>Status: <strong id="discountStatus">Not owned</strong></p>
+        <button type="button" data-upgrade="costDiscount">Purchase for 500 coins</button>
+      </article>
+
+      <article class="upgrade-card">
+        <h2>Laser Weapon</h2>
+        <p>Unlock a laser tower that continuously deals 20 damage per second.</p>
+        <p>Status: <strong id="laserStatus">Not owned</strong></p>
+        <button type="button" data-upgrade="laser">Purchase for 1,000 coins</button>
+      </article>
+
+      <article class="upgrade-card">
+        <h2>Explosive Weapon</h2>
+        <p>Unlock an explosive tower that deals 45 damage every 1.4 seconds to enemies within 50 pixels of its target.</p>
+        <p>Status: <strong id="explosiveStatus">Not owned</strong></p>
+        <button type="button" data-upgrade="explosive">Purchase for 1,500 coins</button>
+      </article>
+
+      <article class="upgrade-card">
+        <h2>Ally Weapon</h2>
+        <p>Unlock an ally tower that sends allies from the end of the path to the start. Each ally damages enemies it passes.</p>
+        <p>Status: <strong id="allyStatus">Not owned</strong></p>
+        <button type="button" data-upgrade="ally">Purchase for 2,000 coins</button>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

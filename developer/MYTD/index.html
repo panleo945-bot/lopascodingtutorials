@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create Your Own Tower TD</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>Create your own tower TD</h1>
+    <nav class="site-nav"><a href="permanentupgrades.html">Permanent upgrades</a></nav>
+
+    <section class="game" aria-label="Tower defense game">
+      <div class="game-stats" aria-live="polite">
+        <span>Cash: $<strong id="cash">500</strong></span>
+        <span>Coins: <strong id="coins">0</strong></span>
+        <span>Lives: <strong id="lives">10</strong></span>
+        <span>Wave: <strong id="wave">0</strong></span>
+      </div>
+      <div class="game-controls">
+        <button id="startWave" type="button">Start Wave</button>
+        <label class="auto-start-option"><input id="autoStartWaves" type="checkbox"> Auto-start waves</label>
+        <button id="deleteMode" type="button" aria-pressed="false">Delete map towers: OFF</button>
+        <button id="restart" type="button" hidden>Play Again</button>
+      </div>
+      <canvas id="gameCanvas" width="400" height="400" aria-label="Game map">
+        Your browser does not support canvas.
+      </canvas>
+      <div class="enemy-legend" aria-label="Enemy types">
+        <span><i class="enemy-swatch normal"></i>Normal</span>
+        <span><i class="enemy-swatch fast"></i>Fast (wave 4)</span>
+        <span><i class="enemy-swatch tank"></i>Tank (wave 8)</span>
+      </div>
+      <p id="gameMessage" role="status">Create a tower, select it, then click an open spot on the map.</p>
+    </section>
+
+    <section>
+      <h2>Towers created</h2>
+      <div id="towerList" class="tower-list">No towers yet.</div>
+    </section>
+
+    <section>
+      <h2>Create your own tower</h2>
+      <form id="towerForm" class="tower-form">
+        <fieldset>
+          <legend>Weapon type</legend>
+          <div class="options">
+            <label><input type="radio" name="towerBullet" value="bullet" checked> Bullet</label>
+            <label><input type="radio" name="towerBullet" value="magic"> Magic</label>
+            <label><input type="radio" name="towerBullet" value="spear"> Spear</label>
+            <label><input type="radio" name="towerBullet" value="laser" disabled> Laser <span data-weapon-lock="laser">(locked)</span></label>
+            <label><input type="radio" name="towerBullet" value="explosive" disabled> Explosive <span data-weapon-lock="explosive">(locked)</span></label>
+            <label><input type="radio" name="towerBullet" value="ally" disabled> Ally <span data-weapon-lock="ally">(locked)</span></label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Cost per tower</legend>
+          <div class="options">
+            <label><input type="radio" name="budget" value="100" checked> $100</label>
+            <label><input type="radio" name="budget" value="250"> $250</label>
+            <label><input type="radio" name="budget" value="500"> $500</label>
+            <label><input type="radio" name="budget" value="800"> $800</label>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Range</legend>
+          <div class="options">
+            <label><input type="radio" name="range" value="close"> Close</label>
+            <label><input type="radio" name="range" value="medium" checked> Medium</label>
+            <label><input type="radio" name="range" value="sniper"> Sniper</label>
+          </div>
+        </fieldset>
+
+        <label for="towerName">Name</label>
+        <input id="towerName" name="towerName" type="text" maxlength="20" placeholder="e.g. Scout" required>
+        <label for="towerColor">Tower color</label>
+        <input id="towerColor" name="towerColor" type="color" value="#547caa">
+        <button type="submit">Create Tower</button>
+      </form>
+    </section>
+<br><br><br>
+    <section aria-label="Reset game progress">
+      <h2>Reset game</h2>
+      <p>This permanently deletes your towers, coins, upgrades, and wave progress.</p>
+      <button id="resetProgress" type="button">Reset all progress</button>
+    </section>
+  </main>
+</body>
+</html>

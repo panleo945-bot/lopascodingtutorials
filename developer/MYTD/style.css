@@ -1,0 +1,205 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 1.5rem;
+  background: #f3f5f7;
+  color: #17212b;
+  font-family: system-ui, sans-serif;
+}
+
+main {
+  width: min(100%, 560px);
+  margin: 0 auto;
+}
+
+h1,
+h2 {
+  text-align: center;
+}
+
+.site-nav {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.site-nav a {
+  color: #245c82;
+}
+
+.game {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+}
+
+.game-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.game-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.auto-start-option {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem;
+}
+
+canvas {
+  display: block;
+  width: min(400px, 100%);
+  height: auto;
+  border: 2px solid #263746;
+  background: #dcefd3;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+canvas.delete-mode {
+  cursor: pointer;
+}
+
+.enemy-legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.enemy-swatch {
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.3rem;
+  border-radius: 50%;
+  vertical-align: -0.05rem;
+}
+
+.enemy-swatch.normal {
+  background: #b63838;
+}
+
+.enemy-swatch.fast {
+  background: #e5a323;
+}
+
+.enemy-swatch.tank {
+  background: #6456a8;
+}
+
+#gameMessage {
+  min-height: 1.5em;
+  margin: 0;
+  text-align: center;
+}
+
+.tower-list {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.upgrade-balance {
+  text-align: center;
+}
+
+.upgrade-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.upgrade-card {
+  padding: 1rem;
+  border: 1px solid #9aa8b4;
+  border-radius: 0.5rem;
+  background: #fff;
+}
+
+.upgrade-card h2 {
+  margin-top: 0;
+}
+
+.upgrade-card p:last-of-type {
+  text-align: center;
+}
+
+.upgrade-card button {
+  display: block;
+  margin: 0 auto;
+}
+
+.tower-design-entry {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.tower-design-select {
+  flex: 1;
+  text-align: left;
+}
+
+.tower-color-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  margin-right: 0.4rem;
+  border: 1px solid #25343f;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.tower-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+fieldset {
+  border: 1px solid #9aa8b4;
+  border-radius: 0.4rem;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+}
+
+button,
+input[type="text"] {
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+}
+
+button {
+  border: 1px solid #42627a;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #e7f1f8;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.tower-list button[aria-pressed="true"] {
+  border-color: #176b3a;
+  background: #e3f4e9;
+}
