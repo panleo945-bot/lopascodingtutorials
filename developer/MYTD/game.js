@@ -16,6 +16,10 @@ const restartButton = document.querySelector("#restart");
 const resetProgressButton = document.querySelector("#resetProgress");
 const saveKey = "bestTdGameState";
 
+function hasOwn(object, property) {
+  return Object.prototype.hasOwnProperty.call(object, property);
+}
+
 const path = [
   { x: -20, y: 70 },
   { x: 100, y: 70 },
@@ -105,9 +109,9 @@ function isValidDesign(design) {
     typeof design === "object" &&
     Number.isInteger(design.id) &&
     typeof design.name === "string" &&
-    Object.hasOwn(weapons, design.weapon) &&
+    hasOwn(weapons, design.weapon) &&
     Number.isInteger(design.cost) &&
-    Object.hasOwn(budgetDamageMultipliers, design.cost) &&
+    hasOwn(budgetDamageMultipliers, design.cost) &&
     design.budgetMultiplier === budgetDamageMultipliers[design.cost] &&
     Number.isFinite(design.range) &&
     Number.isFinite(design.damage) &&
@@ -124,7 +128,7 @@ function isValidPermanentUpgrades(upgrades) {
     (upgrades !== null &&
       typeof upgrades === "object" &&
       Object.entries(upgrades).every(([id, value]) =>
-        Object.hasOwn(defaultPermanentUpgrades, id) && typeof value === "boolean",
+        hasOwn(defaultPermanentUpgrades, id) && typeof value === "boolean",
       ));
 }
 
@@ -199,7 +203,7 @@ function isValidSavedGame(state) {
       Number.isFinite(enemy.reward) &&
       Number.isFinite(enemy.radius) &&
       (enemy.id === undefined || (Number.isInteger(enemy.id) && enemy.id > 0)) &&
-      (enemy.type === undefined || Object.hasOwn(enemyTypes, enemy.type)),
+      (enemy.type === undefined || hasOwn(enemyTypes, enemy.type)),
     ) &&
     (state.allies === undefined || (Array.isArray(state.allies) && state.allies.every(isValidAlly)));
 }
@@ -233,7 +237,7 @@ function restoreGameState() {
   }
 
   cash = state.cash;
-  coins = state.coins ?? 0;
+  coins = state.coins === undefined || state.coins === null ? 0 : state.coins;
   lives = state.lives;
   wave = state.wave;
   autoStartWaves = state.autoStartWaves ?? false;
@@ -246,21 +250,27 @@ function restoreGameState() {
   towerDesigns = state.towerDesigns;
   towers = state.towers;
   for (const tower of towers) {
-    tower.paidCost ??= tower.cost;
-    if (tower.weapon === "ally") tower.maxEnemyHits ??= getAllyHitLimit(tower.range);
+    if (tower.paidCost === undefined || tower.paidCost === null) tower.paidCost = tower.cost;
+    if (tower.weapon === "ally" && (tower.maxEnemyHits === undefined || tower.maxEnemyHits === null)) {
+      tower.maxEnemyHits = getAllyHitLimit(tower.range);
+    }
   }
   enemies = state.enemies;
   for (const enemy of enemies) {
-    enemy.type ??= "normal";
+    if (enemy.type === undefined || enemy.type === null) enemy.type = "normal";
     if (!Number.isInteger(enemy.id)) enemy.id = nextEnemyId++;
     else nextEnemyId = Math.max(nextEnemyId, enemy.id + 1);
   }
-  allies = state.allies ?? [];
+  allies = state.allies === undefined || state.allies === null ? [] : state.allies;
   for (const ally of allies) {
-    ally.maxEnemyHits ??= Math.max(4, ally.hitEnemyIds.length);
+    if (ally.maxEnemyHits === undefined || ally.maxEnemyHits === null) {
+      ally.maxEnemyHits = Math.max(4, ally.hitEnemyIds.length);
+    }
   }
   for (const design of towerDesigns) {
-    if (design.weapon === "ally") design.maxEnemyHits ??= getAllyHitLimit(design.range);
+    if (design.weapon === "ally" && (design.maxEnemyHits === undefined || design.maxEnemyHits === null)) {
+      design.maxEnemyHits = getAllyHitLimit(design.range);
+    }
   }
   selectedDesignId = towerDesigns.some((design) =>
     design.id === state.selectedDesignId && (design.weapon !== "ally" || permanentUpgrades.ally),
@@ -627,7 +637,7 @@ function update(deltaTime) {
   }
 
   for (const enemy of enemies) {
-    enemy.type ??= "normal";
+    if (enemy.type === undefined || enemy.type === null) enemy.type = "normal";
     enemy.distance += enemy.speed * deltaTime;
     const point = getPointOnPath(enemy.distance);
     enemy.x = point.x;

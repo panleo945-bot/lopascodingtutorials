@@ -31,6 +31,10 @@ const coinsDisplay = document.querySelector("#availableCoins");
 const message = document.querySelector("#upgradeMessage");
 let gameState = null;
 
+function hasOwn(object, property) {
+  return Object.prototype.hasOwnProperty.call(object, property);
+}
+
 function createNewGameState() {
   return {
     version: 1,
@@ -67,10 +71,10 @@ function readGameState() {
     throw new Error("Saved game data is invalid.");
   }
 
-  savedState.coins ??= 0;
+  if (savedState.coins === undefined || savedState.coins === null) savedState.coins = 0;
   const upgrades = savedState.permanentUpgrades ?? defaultUpgrades;
   for (const [id, value] of Object.entries(upgrades)) {
-    if (!Object.hasOwn(defaultUpgrades, id) || typeof value !== "boolean") {
+    if (!hasOwn(defaultUpgrades, id) || typeof value !== "boolean") {
       throw new Error("Saved permanent upgrade data is invalid.");
     }
   }
