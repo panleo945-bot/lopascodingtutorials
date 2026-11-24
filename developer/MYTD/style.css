@@ -99,6 +99,14 @@ canvas.delete-mode {
   background: #6456a8;
 }
 
+.enemy-swatch.titan {
+  background: #344f68;
+}
+
+.enemy-swatch.boss {
+  background: #a52f4b;
+}
+
 #gameMessage {
   min-height: 1.5em;
   margin: 0;
@@ -108,6 +116,25 @@ canvas.delete-mode {
 .tower-list {
   display: grid;
   gap: 0.5rem;
+}
+
+.placed-tower-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #9aa8b4;
+  border-radius: 0.4rem;
+  background: #fff;
+}
+
+.placed-tower-entry button {
+  flex-shrink: 0;
+}
+
+.placed-tower-entry span {
+  min-width: 0;
 }
 
 .upgrade-balance {

@@ -32,6 +32,8 @@
         <span><i class="enemy-swatch normal"></i>Normal</span>
         <span><i class="enemy-swatch fast"></i>Fast (wave 4)</span>
         <span><i class="enemy-swatch tank"></i>Tank (wave 8)</span>
+        <span><i class="enemy-swatch titan"></i>Titan (wave 12)</span>
+        <span><i class="enemy-swatch boss"></i>Boss (every 20 waves)</span>
       </div>
       <p id="gameMessage" role="status">Create a tower, select it, then click an open spot on the map.</p>
     </section>
@@ -39,6 +41,12 @@
     <section>
       <h2>Towers created</h2>
       <div id="towerList" class="tower-list">No towers yet.</div>
+    </section>
+
+    <section>
+      <h2>Placed tower upgrades</h2>
+      <p>Each placed tower can buy one weapon-specific upgrade for twice its original cost.</p>
+      <div id="placedTowerList" class="tower-list">No towers placed yet.</div>
     </section>
 
     <section>
@@ -63,6 +71,9 @@
             <label><input type="radio" name="budget" value="250"> $250</label>
             <label><input type="radio" name="budget" value="500"> $500</label>
             <label><input type="radio" name="budget" value="800"> $800</label>
+            <label><input type="radio" name="budget" value="1500"> $1,500</label>
+            <label><input type="radio" name="budget" value="2500"> $2,500</label>
+            <label><input type="radio" name="budget" value="10000"> $10,000</label>
           </div>
         </fieldset>
 

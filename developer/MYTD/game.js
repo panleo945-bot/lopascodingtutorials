@@ -2,6 +2,7 @@ const canvas = document.querySelector("#gameCanvas");
 const ctx = canvas.getContext("2d");
 const towerForm = document.querySelector("#towerForm");
 const towerList = document.querySelector("#towerList");
+const placedTowerList = document.querySelector("#placedTowerList");
 const message = document.querySelector("#gameMessage");
 const cashDisplay = document.querySelector("#cash");
 const coinsDisplay = document.querySelector("#coins");
@@ -31,7 +32,15 @@ const ranges = {
   medium: { distance: 125, damageMultiplier: 1, allyHitLimit: 4 },
   sniper: { distance: 175, damageMultiplier: 0.65, allyHitLimit: 7 },
 };
-const budgetDamageMultipliers = { 100: 0.3, 250: 0.5, 500: 1, 800: 1.3 };
+const budgetDamageMultipliers = {
+  100: 0.3,
+  250: 0.5,
+  500: 1,
+  800: 1.3,
+  1500: 2.5,
+  2500: 3.5,
+  10000: 7.5,
+};
 const defaultPermanentUpgrades = {
   coinIncome: false,
   costDiscount: false,
@@ -47,10 +56,20 @@ const weapons = {
   explosive: { damage: 45, interval: 1.4, splashRadius: 50 },
   ally: { damage: 30, interval: 3, allySpawner: true, allySpeed: 150, allyRadius: 9 },
 };
+const towerUpgrades = {
+  bullet: { id: "machineGun", name: "Machine gun", description: "fires 3x as fast", intervalMultiplier: 1 / 3 },
+  magic: { id: "moneySiphon", name: "Money siphon", description: "earns 3x cash for enemies it kills", rewardMultiplier: 3 },
+  spear: { id: "finalBlow", name: "Final blow", description: "deals 2x damage", damageMultiplier: 2 },
+  laser: { id: "tripleBeam", name: "Triple beam", description: "hits up to three enemies", targetLimit: 3 },
+  explosive: { id: "explosiveBoom", name: "Explosive Boom", description: "deals 3x explosion damage", damageMultiplier: 3 },
+  ally: { id: "reinforcements", name: "Reinforcements", description: "spawns allies 3x as often", intervalMultiplier: 1 / 3 },
+};
 const enemyTypes = {
   normal: { healthMultiplier: 1, speedMultiplier: 1, color: "#b63838", symbol: "N", radius: 10 },
   fast: { healthMultiplier: 0.45, speedMultiplier: 1.8, color: "#e5a323", symbol: "F", radius: 8 },
   tank: { healthMultiplier: 2.4, speedMultiplier: 0.55, color: "#6456a8", symbol: "T", radius: 13 },
+  titan: { healthMultiplier: 8, speedMultiplier: 0.3, color: "#344f68", symbol: "X", radius: 16 },
+  boss: { healthMultiplier: 24, speedMultiplier: 0.44, color: "#a52f4b", symbol: "B", radius: 19 },
 };
 
 let cash = 500;
@@ -160,6 +179,7 @@ function isValidSavedGame(state) {
       Number.isFinite(tower.x) &&
       Number.isFinite(tower.y) &&
       Number.isFinite(tower.cooldown) &&
+      (tower.upgrade === undefined || tower.upgrade === towerUpgrades[tower.weapon].id) &&
       (tower.paidCost === undefined || (Number.isInteger(tower.paidCost) && tower.paidCost >= 0)),
     ) &&
     Array.isArray(state.enemies) &&
@@ -291,6 +311,7 @@ function updateHud() {
 
 function renderTowerList() {
   towerList.replaceChildren();
+  renderPlacedTowerList();
 
   if (towerDesigns.length === 0) {
     towerList.textContent = "No towers yet.";
@@ -348,6 +369,51 @@ function renderTowerList() {
   }
 }
 
+function renderPlacedTowerList() {
+  placedTowerList.replaceChildren();
+
+  if (towers.length === 0) {
+    placedTowerList.textContent = "No towers placed yet.";
+    return;
+  }
+
+  for (const tower of towers) {
+    const entry = document.createElement("div");
+    const details = document.createElement("span");
+    const upgradeButton = document.createElement("button");
+    const upgrade = towerUpgrades[tower.weapon];
+    const upgradeCost = tower.cost * 2;
+    const upgraded = tower.upgrade === upgrade.id;
+
+    entry.className = "placed-tower-entry";
+    details.textContent = `${tower.name} at (${Math.round(tower.x)}, ${Math.round(tower.y)}) · ${tower.weapon} · ${upgrade.name}: ${upgrade.description} · $${upgradeCost}`;
+    upgradeButton.type = "button";
+    upgradeButton.textContent = upgraded ? `${upgrade.name} purchased` : `Buy ${upgrade.name} ($${upgradeCost})`;
+    upgradeButton.disabled = upgraded;
+    upgradeButton.setAttribute("aria-label", upgraded
+      ? `${upgrade.name} already purchased for ${tower.name}`
+      : `Buy ${upgrade.name} for ${tower.name} at $${upgradeCost}`);
+    upgradeButton.addEventListener("click", () => {
+      if (tower.upgrade === upgrade.id) return;
+      if (cash < upgradeCost) {
+        message.textContent = `You need $${upgradeCost} to buy ${upgrade.name} for ${tower.name}.`;
+        return;
+      }
+
+      cash -= upgradeCost;
+      tower.upgrade = upgrade.id;
+      tower.cooldown = Math.min(tower.cooldown, getTowerInterval(tower));
+      message.textContent = `${tower.name} upgraded: ${upgrade.name}.`;
+      updateHud();
+      renderTowerList();
+      saveGameState();
+    });
+
+    entry.append(details, upgradeButton);
+    placedTowerList.append(entry);
+  }
+}
+
 function getSelectedDesign() {
   const design = towerDesigns.find((item) => item.id === selectedDesignId);
   return design && (design.weapon !== "ally" || permanentUpgrades.ally) ? design : null;
@@ -355,6 +421,16 @@ function getSelectedDesign() {
 
 function getTowerCost(design) {
   return permanentUpgrades.costDiscount ? Math.ceil(design.cost * 0.95) : design.cost;
+}
+
+function getTowerInterval(tower) {
+  const upgrade = towerUpgrades[tower.weapon];
+  return tower.interval * (tower.upgrade === upgrade.id ? upgrade.intervalMultiplier ?? 1 : 1);
+}
+
+function getTowerDamage(tower) {
+  const upgrade = towerUpgrades[tower.weapon];
+  return tower.damage * (tower.upgrade === upgrade.id ? upgrade.damageMultiplier ?? 1 : 1);
 }
 
 function getAllyHitLimit(range) {
@@ -426,21 +502,27 @@ function isValidPlacement(point) {
   return towers.every((tower) => Math.hypot(point.x - tower.x, point.y - tower.y) >= 25);
 }
 
-function spawnEnemy() {
-  let type = "normal";
-  if (wave >= 8 && spawnRemaining % 5 === 0) {
-    type = "tank";
-  } else if (wave >= 4 && spawnRemaining % 3 === 0) {
-    type = "fast";
+function spawnEnemy(type, distance = 0, point = path[0]) {
+  if (type === undefined) {
+    type = "normal";
+    if (wave % 20 === 0 && spawnRemaining === 1) {
+      type = "boss";
+    } else if (wave >= 12 && spawnRemaining % 7 === 0) {
+      type = "titan";
+    } else if (wave >= 8 && spawnRemaining % 5 === 0) {
+      type = "tank";
+    } else if (wave >= 4 && spawnRemaining % 3 === 0) {
+      type = "fast";
+    }
   }
   const enemyType = enemyTypes[type];
   const maxHealth = Math.round((30 + wave * 7) * enemyType.healthMultiplier);
   enemies.push({
     id: nextEnemyId,
     type,
-    distance: 0,
-    x: path[0].x,
-    y: path[0].y,
+    distance,
+    x: point.x,
+    y: point.y,
     health: maxHealth,
     maxHealth,
     speed: (38 + wave * 2) * enemyType.speedMultiplier,
@@ -448,6 +530,23 @@ function spawnEnemy() {
     radius: enemyType.radius,
   });
   nextEnemyId += 1;
+}
+
+function damageEnemy(enemy, damage, sourceTower) {
+  if (enemy.health <= 0) return;
+  enemy.health -= damage;
+  if (enemy.health > 0) return;
+
+  const rewardMultiplier = sourceTower?.weapon === "magic" &&
+    sourceTower.upgrade === towerUpgrades.magic.id
+    ? towerUpgrades.magic.rewardMultiplier
+    : 1;
+  cash += enemy.reward * rewardMultiplier;
+  if (enemy.type === "titan") {
+    for (let index = 0; index < 3; index += 1) {
+      spawnEnemy("fast", enemy.distance, enemy);
+    }
+  }
 }
 
 function startWave() {
@@ -515,8 +614,7 @@ function update(deltaTime) {
       }
 
       ally.hitEnemyIds.push(enemy.id);
-      enemy.health -= ally.damage;
-      if (enemy.health <= 0) cash += enemy.reward;
+      damageEnemy(enemy, ally.damage);
       effects.push({ x1: ally.x, y1: ally.y, x2: enemy.x, y2: enemy.y, life: 0.12, color: ally.color });
     }
   }
@@ -550,7 +648,7 @@ function update(deltaTime) {
           maxEnemyHits: tower.maxEnemyHits,
           hitEnemyIds: [],
         });
-        tower.cooldown = tower.interval;
+        tower.cooldown = getTowerInterval(tower);
         continue;
       }
       if (weapon.continuous) {
@@ -560,19 +658,24 @@ function update(deltaTime) {
         if (tower.cooldown > 0) continue;
       }
 
-      const target = enemies
+      const targetsInRange = enemies
         .filter((enemy) => enemy.health > 0 && Math.hypot(enemy.x - tower.x, enemy.y - tower.y) <= tower.range)
-        .sort((a, b) => b.distance - a.distance)[0];
+        .sort((a, b) => b.distance - a.distance);
+      const target = targetsInRange[0];
       if (!target) continue;
 
       if (weapon.continuous) {
-        target.health -= tower.damage * deltaTime;
-        if (target.health <= 0) cash += target.reward;
-        effects.push({ x1: tower.x, y1: tower.y, x2: target.x, y2: target.y, life: 0.06, color: "#47c9e8" });
+        const beamTargets = tower.upgrade === towerUpgrades.laser.id
+          ? targetsInRange.slice(0, towerUpgrades.laser.targetLimit)
+          : [target];
+        for (const beamTarget of beamTargets) {
+          damageEnemy(beamTarget, getTowerDamage(tower) * deltaTime, tower);
+          effects.push({ x1: tower.x, y1: tower.y, x2: beamTarget.x, y2: beamTarget.y, life: 0.06, color: "#47c9e8" });
+        }
         continue;
       }
 
-      tower.cooldown = tower.interval;
+      tower.cooldown = getTowerInterval(tower);
       const targets = weapon.splashRadius
         ? enemies.filter((enemy) =>
           enemy.health > 0 &&
@@ -580,8 +683,7 @@ function update(deltaTime) {
         )
         : [target];
       for (const enemy of targets) {
-        enemy.health -= tower.damage;
-        if (enemy.health <= 0) cash += enemy.reward;
+        damageEnemy(enemy, getTowerDamage(tower), tower);
       }
       effects.push({
         x1: tower.x,
