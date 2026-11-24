@@ -70,6 +70,10 @@ canvas.delete-mode {
   cursor: pointer;
 }
 
+canvas.select-mode {
+  cursor: pointer;
+}
+
 .enemy-legend {
   display: flex;
   flex-wrap: wrap;

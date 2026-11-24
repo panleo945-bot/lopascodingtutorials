@@ -11,6 +11,7 @@ const waveDisplay = document.querySelector("#wave");
 const startWaveButton = document.querySelector("#startWave");
 const autoStartWavesCheckbox = document.querySelector("#autoStartWaves");
 const deleteModeButton = document.querySelector("#deleteMode");
+const selectModeButton = document.querySelector("#selectMode");
 const restartButton = document.querySelector("#restart");
 const resetProgressButton = document.querySelector("#resetProgress");
 const saveKey = "bestTdGameState";
@@ -81,6 +82,7 @@ let waveActive = false;
 let autoStartWaves = false;
 let gameOver = false;
 let deleteMode = false;
+let selectMode = false;
 let spawnRemaining = 0;
 let spawnTimer = 0;
 let enemies = [];
@@ -88,6 +90,7 @@ let allies = [];
 let towers = [];
 let towerDesigns = [];
 let selectedDesignId = null;
+let selectedTower = null;
 let pointer = null;
 let hoveredTower = null;
 let effects = [];
@@ -309,6 +312,15 @@ function updateHud() {
   restartButton.hidden = !gameOver;
 }
 
+function updateModeControls() {
+  deleteModeButton.setAttribute("aria-pressed", String(deleteMode));
+  deleteModeButton.textContent = `Delete map towers: ${deleteMode ? "ON" : "OFF"}`;
+  selectModeButton.setAttribute("aria-pressed", String(selectMode));
+  selectModeButton.textContent = `Select mode: ${selectMode ? "ON" : "OFF"}`;
+  canvas.classList.toggle("delete-mode", deleteMode);
+  canvas.classList.toggle("select-mode", selectMode);
+}
+
 function renderTowerList() {
   towerList.replaceChildren();
   renderPlacedTowerList();
@@ -344,6 +356,9 @@ function renderTowerList() {
     selectButton.setAttribute("aria-pressed", String(design.id === selectedDesignId));
     selectButton.disabled = design.weapon === "ally" && !permanentUpgrades.ally;
     selectButton.addEventListener("click", () => {
+      selectMode = false;
+      selectedTower = null;
+      updateModeControls();
       selectedDesignId = design.id;
       message.textContent = deleteMode
         ? `${design.name} selected. Turn off map delete mode to place it.`
@@ -372,46 +387,48 @@ function renderTowerList() {
 function renderPlacedTowerList() {
   placedTowerList.replaceChildren();
 
-  if (towers.length === 0) {
-    placedTowerList.textContent = "No towers placed yet.";
+  if (!selectedTower || !towers.includes(selectedTower)) {
+    placedTowerList.textContent = towers.length === 0
+      ? "No towers placed yet."
+      : "Click a placed tower on the map to view its upgrade.";
     return;
   }
 
-  for (const tower of towers) {
-    const entry = document.createElement("div");
-    const details = document.createElement("span");
-    const upgradeButton = document.createElement("button");
-    const upgrade = towerUpgrades[tower.weapon];
-    const upgradeCost = tower.cost * 2;
-    const upgraded = tower.upgrade === upgrade.id;
+  const tower = selectedTower;
+  const entry = document.createElement("div");
+  const details = document.createElement("span");
+  const upgradeButton = document.createElement("button");
+  const upgrade = towerUpgrades[tower.weapon];
+  const upgradeCost = tower.cost * 2;
+  const upgraded = tower.upgrade === upgrade.id;
 
-    entry.className = "placed-tower-entry";
-    details.textContent = `${tower.name} at (${Math.round(tower.x)}, ${Math.round(tower.y)}) · ${tower.weapon} · ${upgrade.name}: ${upgrade.description} · $${upgradeCost}`;
-    upgradeButton.type = "button";
-    upgradeButton.textContent = upgraded ? `${upgrade.name} purchased` : `Buy ${upgrade.name} ($${upgradeCost})`;
-    upgradeButton.disabled = upgraded;
-    upgradeButton.setAttribute("aria-label", upgraded
-      ? `${upgrade.name} already purchased for ${tower.name}`
-      : `Buy ${upgrade.name} for ${tower.name} at $${upgradeCost}`);
-    upgradeButton.addEventListener("click", () => {
-      if (tower.upgrade === upgrade.id) return;
-      if (cash < upgradeCost) {
-        message.textContent = `You need $${upgradeCost} to buy ${upgrade.name} for ${tower.name}.`;
-        return;
-      }
+  entry.className = "placed-tower-entry";
+  entry.tabIndex = -1;
+  details.textContent = `${tower.name} · ${tower.weapon} · ${upgrade.name}: ${upgrade.description} · $${upgradeCost}`;
+  upgradeButton.type = "button";
+  upgradeButton.textContent = upgraded ? `${upgrade.name} purchased` : `Buy ${upgrade.name} ($${upgradeCost})`;
+  upgradeButton.disabled = upgraded;
+  upgradeButton.setAttribute("aria-label", upgraded
+    ? `${upgrade.name} already purchased for ${tower.name}`
+    : `Buy ${upgrade.name} for ${tower.name} at $${upgradeCost}`);
+  upgradeButton.addEventListener("click", () => {
+    if (tower.upgrade === upgrade.id) return;
+    if (cash < upgradeCost) {
+      message.textContent = `You need $${upgradeCost} to buy ${upgrade.name} for ${tower.name}.`;
+      return;
+    }
 
-      cash -= upgradeCost;
-      tower.upgrade = upgrade.id;
-      tower.cooldown = Math.min(tower.cooldown, getTowerInterval(tower));
-      message.textContent = `${tower.name} upgraded: ${upgrade.name}.`;
-      updateHud();
-      renderTowerList();
-      saveGameState();
-    });
+    cash -= upgradeCost;
+    tower.upgrade = upgrade.id;
+    tower.cooldown = Math.min(tower.cooldown, getTowerInterval(tower));
+    message.textContent = `${tower.name} upgraded: ${upgrade.name}.`;
+    updateHud();
+    renderTowerList();
+    saveGameState();
+  });
 
-    entry.append(details, upgradeButton);
-    placedTowerList.append(entry);
-  }
+  entry.append(details, upgradeButton);
+  placedTowerList.append(entry);
 }
 
 function getSelectedDesign() {
@@ -500,6 +517,37 @@ function isValidPlacement(point) {
   }
 
   return towers.every((tower) => Math.hypot(point.x - tower.x, point.y - tower.y) >= 25);
+}
+
+function getTowerAtPoint(point) {
+  let nearestTower = null;
+  let nearestDistance = 18;
+  for (const tower of towers) {
+    const distance = Math.hypot(point.x - tower.x, point.y - tower.y);
+    if (distance <= nearestDistance) {
+      nearestTower = tower;
+      nearestDistance = distance;
+    }
+  }
+  return nearestTower;
+}
+
+function openTowerUpgradeMenu(tower) {
+  selectedTower = tower;
+  selectedDesignId = null;
+  selectMode = true;
+  deleteMode = false;
+  updateModeControls();
+  renderTowerList();
+
+  const entry = placedTowerList.querySelector(".placed-tower-entry");
+  if (entry) {
+    entry.scrollIntoView({ behavior: "smooth", block: "center" });
+    (entry.querySelector("button").disabled ? entry : entry.querySelector("button"))
+      .focus({ preventScroll: true });
+  }
+  message.textContent = `${tower.name} selected. Its upgrade menu is highlighted below.`;
+  saveGameState();
 }
 
 function spawnEnemy(type, distance = 0, point = path[0]) {
@@ -904,6 +952,9 @@ towerForm.addEventListener("submit", (event) => {
     symbol: symbols[weapon],
   };
   if (weapon === "ally") design.maxEnemyHits = ranges[rangeType].allyHitLimit;
+  selectMode = false;
+  selectedTower = null;
+  updateModeControls();
   nextDesignId += 1;
   towerDesigns.push(design);
   selectedDesignId = design.id;
@@ -925,29 +976,31 @@ canvas.addEventListener("pointerleave", () => {
 
 canvas.addEventListener("click", (event) => {
   const point = getCanvasPoint(event);
+  const clickedTower = getTowerAtPoint(point);
   if (deleteMode) {
-    let towerIndex = -1;
-    let nearestDistance = Infinity;
-    towers.forEach((tower, index) => {
-      const distance = Math.hypot(point.x - tower.x, point.y - tower.y);
-      if (distance <= 18 && distance < nearestDistance) {
-        towerIndex = index;
-        nearestDistance = distance;
-      }
-    });
-
-    if (towerIndex === -1) {
+    if (!clickedTower) {
       message.textContent = "Click on a placed tower to delete it.";
       return;
     }
 
+    const towerIndex = towers.indexOf(clickedTower);
     const [removedTower] = towers.splice(towerIndex, 1);
+    if (selectedTower === removedTower) selectedTower = null;
     const refund = Math.floor((removedTower.paidCost ?? removedTower.cost) / 2);
     cash += refund;
     message.textContent = `${removedTower.name} removed from the map. Refunded $${refund}.`;
     renderTowerList();
     updateHud();
     saveGameState();
+    return;
+  }
+
+  if (clickedTower) {
+    openTowerUpgradeMenu(clickedTower);
+    return;
+  }
+  if (selectMode) {
+    message.textContent = "Select mode is on. Click a placed tower to open its upgrades, or turn it off to place a tower.";
     return;
   }
 
@@ -991,12 +1044,29 @@ autoStartWavesCheckbox.addEventListener("change", () => {
 });
 deleteModeButton.addEventListener("click", () => {
   deleteMode = !deleteMode;
-  deleteModeButton.setAttribute("aria-pressed", String(deleteMode));
-  deleteModeButton.textContent = `Delete map towers: ${deleteMode ? "ON" : "OFF"}`;
-  canvas.classList.toggle("delete-mode", deleteMode);
+  if (deleteMode) {
+    selectMode = false;
+    selectedTower = null;
+    renderTowerList();
+  }
+  updateModeControls();
   message.textContent = deleteMode
     ? "Delete mode is on. Click a placed tower to remove it and refund half its cost."
     : "Delete mode is off. Select a tower design to place it.";
+});
+selectModeButton.addEventListener("click", () => {
+  selectMode = !selectMode;
+  if (selectMode) {
+    deleteMode = false;
+    selectedDesignId = null;
+    selectedTower = null;
+  }
+  updateModeControls();
+  renderTowerList();
+  message.textContent = selectMode
+    ? "Select mode is on. Click a placed tower to open its upgrades."
+    : "Select mode is off. Select a tower design to place it.";
+  saveGameState();
 });
 restartButton.addEventListener("click", () => {
   cash = 500;
@@ -1037,6 +1107,7 @@ if (restoreGameState()) {
       : "Saved game restored.";
 }
 updateWeaponOptions();
+updateModeControls();
 renderTowerList();
 updateHud();
 if (autoStartWaves && !waveActive && !gameOver) startWave();

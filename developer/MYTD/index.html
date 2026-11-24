@@ -23,6 +23,7 @@
         <button id="startWave" type="button">Start Wave</button>
         <label class="auto-start-option"><input id="autoStartWaves" type="checkbox"> Auto-start waves</label>
         <button id="deleteMode" type="button" aria-pressed="false">Delete map towers: OFF</button>
+        <button id="selectMode" type="button" aria-pressed="false">Select mode: OFF</button>
         <button id="restart" type="button" hidden>Play Again</button>
       </div>
       <canvas id="gameCanvas" width="400" height="400" aria-label="Game map">
@@ -44,8 +45,8 @@
     </section>
 
     <section>
-      <h2>Placed tower upgrades</h2>
-      <p>Each placed tower can buy one weapon-specific upgrade for twice its original cost.</p>
+      <h2>Selected tower upgrade</h2>
+      <p>Click a placed tower on the map to view and buy its weapon-specific upgrade for twice its original cost.</p>
       <div id="placedTowerList" class="tower-list">No towers placed yet.</div>
     </section>
 
