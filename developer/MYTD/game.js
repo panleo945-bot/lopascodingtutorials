@@ -52,6 +52,8 @@ const defaultPermanentUpgrades = {
   laser: false,
   explosive: false,
   ally: false,
+  cashBoost: false,
+  tier2TowerUpgrades: false,
 };
 const weapons = {
   bullet: { damage: 12, interval: 0.55 },
@@ -68,6 +70,30 @@ const towerUpgrades = {
   laser: { id: "tripleBeam", name: "Triple beam", description: "hits up to three enemies", targetLimit: 3 },
   explosive: { id: "explosiveBoom", name: "Explosive Boom", description: "deals 3x explosion damage", damageMultiplier: 3 },
   ally: { id: "reinforcements", name: "Reinforcements", description: "spawns allies 3x as often", intervalMultiplier: 1 / 3 },
+};
+const secondTowerUpgrades = {
+  bullet: { id: "thiccAmmo", name: "Thicc ammo", description: "deals 4x damage", damageMultiplier: 4 },
+  magic: { id: "farm", name: "Farm", description: "generates cash equal to the tower cost per cleared round" },
+  spear: {
+    id: "overkill",
+    name: "Overkill",
+    description: "deals 9x damage, but attacks at 0.75x speed",
+    damageMultiplier: 9,
+    attackSpeedMultiplier: 0.75,
+  },
+  laser: { id: "thiccLaser", name: "Thicc laser", description: "deals 6x damage", damageMultiplier: 6 },
+  explosive: {
+    id: "moreBoom",
+    name: "More boom",
+    description: "shoots 6x faster",
+    attackSpeedMultiplier: 6,
+  },
+  ally: {
+    id: "strengthPotion",
+    name: "Potion of strength",
+    description: "allies deal 5x damage",
+    damageMultiplier: 5,
+  },
 };
 const enemyTypes = {
   normal: { healthMultiplier: 1, speedMultiplier: 1, color: "#b63838", symbol: "N", radius: 10 },
@@ -187,6 +213,10 @@ function isValidSavedGame(state) {
       Number.isFinite(tower.y) &&
       Number.isFinite(tower.cooldown) &&
       (tower.upgrade === undefined || tower.upgrade === towerUpgrades[tower.weapon].id) &&
+      (tower.upgrade2 === undefined || (
+        tower.upgrade === towerUpgrades[tower.weapon].id &&
+        tower.upgrade2 === secondTowerUpgrades[tower.weapon].id
+      )) &&
       (tower.paidCost === undefined || (Number.isInteger(tower.paidCost) && tower.paidCost >= 0)),
     ) &&
     Array.isArray(state.enemies) &&
@@ -407,29 +437,58 @@ function renderPlacedTowerList() {
   const tower = selectedTower;
   const entry = document.createElement("div");
   const details = document.createElement("span");
-  const upgradeButton = document.createElement("button");
-  const upgrade = towerUpgrades[tower.weapon];
-  const upgradeCost = tower.cost * 2;
-  const upgraded = tower.upgrade === upgrade.id;
+  const firstUpgrade = towerUpgrades[tower.weapon];
+  const secondUpgrade = secondTowerUpgrades[tower.weapon];
+  const secondUpgradeLock = !permanentUpgrades.tier2TowerUpgrades
+    ? "Unlock Tier 2 in the permanent upgrades shop"
+    : tower.upgrade !== firstUpgrade.id
+      ? "Buy the first upgrade first"
+      : null;
 
   entry.className = "placed-tower-entry";
   entry.tabIndex = -1;
-  details.textContent = `${tower.name} · ${tower.weapon} · ${upgrade.name}: ${upgrade.description} · $${upgradeCost}`;
-  upgradeButton.type = "button";
-  upgradeButton.textContent = upgraded ? `${upgrade.name} purchased` : `Buy ${upgrade.name} ($${upgradeCost})`;
-  upgradeButton.disabled = upgraded;
-  upgradeButton.setAttribute("aria-label", upgraded
+  details.textContent = `${tower.name} · ${tower.weapon} · Original cost $${tower.cost}`;
+  entry.append(
+    details,
+    createTowerUpgradeControl(tower, firstUpgrade, "upgrade", tower.cost * 2),
+    createTowerUpgradeControl(
+      tower,
+      secondUpgrade,
+      "upgrade2",
+      tower.cost * 4,
+      secondUpgradeLock,
+    ),
+  );
+  placedTowerList.append(entry);
+}
+
+function createTowerUpgradeControl(tower, upgrade, property, cost, lockMessage = null) {
+  const option = document.createElement("div");
+  const description = document.createElement("span");
+  const button = document.createElement("button");
+  const purchased = tower[property] === upgrade.id;
+
+  option.className = "tower-upgrade-option";
+  description.textContent = `${upgrade.name}: ${upgrade.description}`;
+  button.type = "button";
+  button.textContent = purchased
+    ? `${upgrade.name} purchased`
+    : lockMessage ?? `Buy ${upgrade.name} ($${cost})`;
+  button.disabled = purchased || Boolean(lockMessage);
+  button.setAttribute("aria-label", purchased
     ? `${upgrade.name} already purchased for ${tower.name}`
-    : `Buy ${upgrade.name} for ${tower.name} at $${upgradeCost}`);
-  upgradeButton.addEventListener("click", () => {
-    if (tower.upgrade === upgrade.id) return;
-    if (cash < upgradeCost) {
-      message.textContent = `You need $${upgradeCost} to buy ${upgrade.name} for ${tower.name}.`;
+    : lockMessage
+      ? `${upgrade.name} unavailable: ${lockMessage}`
+      : `Buy ${upgrade.name} for ${tower.name} at $${cost}`);
+  button.addEventListener("click", () => {
+    if (purchased) return;
+    if (cash < cost) {
+      message.textContent = `You need $${cost} to buy ${upgrade.name} for ${tower.name}.`;
       return;
     }
 
-    cash -= upgradeCost;
-    tower.upgrade = upgrade.id;
+    cash -= cost;
+    tower[property] = upgrade.id;
     tower.cooldown = Math.min(tower.cooldown, getTowerInterval(tower));
     message.textContent = `${tower.name} upgraded: ${upgrade.name}.`;
     updateHud();
@@ -437,8 +496,8 @@ function renderPlacedTowerList() {
     saveGameState();
   });
 
-  entry.append(details, upgradeButton);
-  placedTowerList.append(entry);
+  option.append(description, button);
+  return option;
 }
 
 function getSelectedDesign() {
@@ -451,13 +510,31 @@ function getTowerCost(design) {
 }
 
 function getTowerInterval(tower) {
-  const upgrade = towerUpgrades[tower.weapon];
-  return tower.interval * (tower.upgrade === upgrade.id ? upgrade.intervalMultiplier ?? 1 : 1);
+  const firstUpgrade = towerUpgrades[tower.weapon];
+  const secondUpgrade = secondTowerUpgrades[tower.weapon];
+  const firstSpeedMultiplier = tower.upgrade === firstUpgrade.id
+    ? 1 / (firstUpgrade.intervalMultiplier ?? 1)
+    : 1;
+  const secondSpeedMultiplier = tower.upgrade2 === secondUpgrade.id
+    ? secondUpgrade.attackSpeedMultiplier ?? 1
+    : 1;
+  return tower.interval / (firstSpeedMultiplier * secondSpeedMultiplier);
 }
 
 function getTowerDamage(tower) {
-  const upgrade = towerUpgrades[tower.weapon];
-  return tower.damage * (tower.upgrade === upgrade.id ? upgrade.damageMultiplier ?? 1 : 1);
+  const firstUpgrade = towerUpgrades[tower.weapon];
+  const secondUpgrade = secondTowerUpgrades[tower.weapon];
+  const firstDamageMultiplier = tower.upgrade === firstUpgrade.id
+    ? firstUpgrade.damageMultiplier ?? 1
+    : 1;
+  const secondDamageMultiplier = tower.upgrade2 === secondUpgrade.id
+    ? secondUpgrade.damageMultiplier ?? 1
+    : 1;
+  return tower.damage * firstDamageMultiplier * secondDamageMultiplier;
+}
+
+function getCashMultiplier() {
+  return permanentUpgrades.cashBoost ? 1.15 : 1;
 }
 
 function getAllyHitLimit(range) {
@@ -599,7 +676,7 @@ function damageEnemy(enemy, damage, sourceTower) {
     sourceTower.upgrade === towerUpgrades.magic.id
     ? towerUpgrades.magic.rewardMultiplier
     : 1;
-  cash += enemy.reward * rewardMultiplier;
+  cash += enemy.reward * rewardMultiplier * getCashMultiplier();
   if (enemy.type === "titan") {
     for (let index = 0; index < 3; index += 1) {
       spawnEnemy("fast", enemy.distance, enemy);
@@ -700,7 +777,7 @@ function update(deltaTime) {
           x: startPoint.x,
           y: startPoint.y,
           speed: weapon.allySpeed,
-          damage: tower.damage,
+          damage: getTowerDamage(tower),
           radius: weapon.allyRadius,
           color: tower.color,
           maxEnemyHits: tower.maxEnemyHits,
@@ -764,7 +841,14 @@ function update(deltaTime) {
   if (waveActive && spawnRemaining === 0 && enemies.length === 0 && allies.length === 0) {
     waveActive = false;
     const clearedWave = wave;
-    cash += 50;
+    const farmIncome = towers.reduce((total, tower) => {
+      return total + (
+        tower.weapon === "magic" && tower.upgrade2 === secondTowerUpgrades.magic.id
+          ? tower.cost
+          : 0
+      );
+    }, 0);
+    cash += (50 + farmIncome) * getCashMultiplier();
     const coinReward = permanentUpgrades.coinIncome
       ? 25 + clearedWave * 5
       : 10 + clearedWave;

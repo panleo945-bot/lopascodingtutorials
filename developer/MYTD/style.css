@@ -123,9 +123,7 @@ canvas.select-mode {
 }
 
 .placed-tower-entry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
   gap: 0.5rem;
   padding: 0.5rem;
   border: 1px solid #9aa8b4;
@@ -133,7 +131,19 @@ canvas.select-mode {
   background: #fff;
 }
 
-.placed-tower-entry button {
+.tower-upgrade-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tower-upgrade-option span {
+  flex: 1 1 14rem;
+}
+
+.tower-upgrade-option button {
   flex-shrink: 0;
 }
 

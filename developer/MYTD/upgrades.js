@@ -5,13 +5,25 @@ const defaultUpgrades = {
   laser: false,
   explosive: false,
   ally: false,
+  cashBoost: false,
+  tier2TowerUpgrades: false,
 };
-const upgradePrices = { coinIncome: 100, costDiscount: 500, laser: 1000, explosive: 1500, ally: 2000 };
+const upgradePrices = {
+  coinIncome: 100,
+  costDiscount: 500,
+  laser: 1000,
+  explosive: 1500,
+  ally: 2000,
+  cashBoost: 3000,
+  tier2TowerUpgrades: 5000,
+};
 const upgradePrerequisites = {
   costDiscount: "coinIncome",
   laser: "costDiscount",
   explosive: "laser",
   ally: "explosive",
+  cashBoost: "ally",
+  tier2TowerUpgrades: "cashBoost",
 };
 const upgradeNames = {
   coinIncome: "Increased Coin Income",
@@ -19,6 +31,8 @@ const upgradeNames = {
   laser: "Laser Weapon",
   explosive: "Explosive Weapon",
   ally: "Ally Weapon",
+  cashBoost: "Cash Boost",
+  tier2TowerUpgrades: "Tier 2 Tower Upgrades",
 };
 const statusIds = {
   coinIncome: "coinIncomeStatus",
@@ -26,6 +40,8 @@ const statusIds = {
   laser: "laserStatus",
   explosive: "explosiveStatus",
   ally: "allyStatus",
+  cashBoost: "cashBoostStatus",
+  tier2TowerUpgrades: "tier2TowerUpgradesStatus",
 };
 const coinsDisplay = document.querySelector("#availableCoins");
 const message = document.querySelector("#upgradeMessage");
