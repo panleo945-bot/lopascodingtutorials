@@ -24,6 +24,7 @@ const path = [
   { x: 290, y: 300 },
   { x: 420, y: 300 },
 ];
+//easteregg
 const pathWidth = 38;
 const pathLength = path.slice(1).reduce((total, point, index) => {
   return total + Math.hypot(point.x - path[index].x, point.y - path[index].y);
@@ -820,6 +821,15 @@ function drawAlly(ally) {
 }
 
 function drawTower(tower) {
+  const upgrade = towerUpgrades[tower.weapon];
+  if (tower.upgrade === upgrade.id) {
+    ctx.beginPath();
+    ctx.arc(tower.x, tower.y, 17, 0, Math.PI * 2);
+    ctx.strokeStyle = "#8b5cf6";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
+
   ctx.beginPath();
   ctx.arc(tower.x, tower.y, 13, 0, Math.PI * 2);
   ctx.fillStyle = tower.color;
