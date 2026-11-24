@@ -822,6 +822,13 @@ function drawAlly(ally) {
 function drawTower(tower) {
   const upgrade = towerUpgrades[tower.weapon];
   const upgraded = tower.upgrade === upgrade.id;
+  if (upgraded) {
+    ctx.beginPath();
+    ctx.arc(tower.x, tower.y, 17, 0, Math.PI * 2);
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+  }
   ctx.beginPath();
   ctx.arc(tower.x, tower.y, 13, 0, Math.PI * 2);
   ctx.fillStyle = tower.color;
