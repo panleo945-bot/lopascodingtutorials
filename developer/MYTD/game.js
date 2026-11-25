@@ -342,7 +342,7 @@ function saveGameState() {
 }
 
 function updateHud() {
-  cashDisplay.textContent = String(cash);
+  cashDisplay.textContent = String(Math.floor(cash));
   coinsDisplay.textContent = String(coins);
   livesDisplay.textContent = String(lives);
   waveDisplay.textContent = String(wave);
@@ -914,12 +914,14 @@ function drawAlly(ally) {
 }
 
 function drawTower(tower) {
-  const upgrade = towerUpgrades[tower.weapon];
-  const upgraded = tower.upgrade === upgrade.id;
-  if (upgraded) {
+  const firstUpgrade = towerUpgrades[tower.weapon];
+  const secondUpgrade = secondTowerUpgrades[tower.weapon];
+  const hasFirstUpgrade = tower.upgrade === firstUpgrade.id;
+  const hasBothUpgrades = hasFirstUpgrade && tower.upgrade2 === secondUpgrade.id;
+  if (hasFirstUpgrade) {
     ctx.beginPath();
     ctx.arc(tower.x, tower.y, 17, 0, Math.PI * 2);
-    ctx.strokeStyle = "#3b82f6";
+    ctx.strokeStyle = hasBothUpgrades ? "#dc2626" : "#3b82f6";
     ctx.lineWidth = 3;
     ctx.stroke();
   }
@@ -927,8 +929,8 @@ function drawTower(tower) {
   ctx.arc(tower.x, tower.y, 13, 0, Math.PI * 2);
   ctx.fillStyle = tower.color;
   ctx.fill();
-  ctx.strokeStyle = upgraded ? "#a855f7" : "#25343f";
-  ctx.lineWidth = upgraded ? 4 : 2;
+  ctx.strokeStyle = hasBothUpgrades ? "#dc2626" : hasFirstUpgrade ? "#a855f7" : "#25343f";
+  ctx.lineWidth = hasFirstUpgrade ? 4 : 2;
   ctx.stroke();
   ctx.fillStyle = "#fff";
   ctx.font = "bold 11px system-ui";
